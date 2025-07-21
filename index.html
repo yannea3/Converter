@@ -88,87 +88,101 @@
   </div>
 
   <script>
-    function decimalToFraction(value) {
-      const tolerance = 1e-2;
-      let h1 = 1, h2 = 0, k1 = 0, k2 = 1;
-      let b = value;
-      do {
-        let a = Math.floor(b);
-        let aux = h1; h1 = a * h1 + h2; h2 = aux;
-        aux = k1; k1 = a * k1 + k2; k2 = aux;
-        b = 1 / (b - a);
-      } while (Math.abs(value - h1 / k1) > value * tolerance);
+  function decimalToFraction(value) {
+    const tolerance = 1e-2;
+    let h1 = 1, h2 = 0, k1 = 0, k2 = 1;
+    let b = value;
+    do {
+      let a = Math.floor(b);
+      let aux = h1; h1 = a * h1 + h2; h2 = aux;
+      aux = k1; k1 = a * k1 + k2; k2 = aux;
+      b = 1 / (b - a);
+    } while (Math.abs(value - h1 / k1) > value * tolerance);
+
+    // Only return clean 1-digit fractions
+    if (k1 <= 9) {
       return `${h1}/${k1}`;
+    } else {
+      return null;
+    }
+  }
+
+  function convert() {
+    const value = parseFloat(document.getElementById('unitValue').value);
+    const from = document.getElementById('unitFrom').value;
+    const to = document.getElementById('unitTo').value;
+    const ingredient = document.getElementById('ingredient').value;
+
+    if (isNaN(value) || value <= 0) {
+      document.getElementById("conversionResult").innerText = "Please enter a valid amount.";
+      return;
     }
 
-    function convert() {
-      const value = parseFloat(document.getElementById('unitValue').value);
-      const from = document.getElementById('unitFrom').value;
-      const to = document.getElementById('unitTo').value;
-      const ingredient = document.getElementById('ingredient').value;
+    const densities = {
+      flour: 0.53,
+      sugar: 0.85,
+      butter: 0.96,
+      water: 1.00,
+      milk: 1.03
+    };
 
-      const densities = {
-        flour: 0.53,
-        sugar: 0.85,
-        butter: 0.96,
-        water: 1.00,
-        milk: 1.03
-      };
+    const volumeUnits = {
+      ml: 1,
+      cups: 240,
+      tbsp: 15,
+      tsp: 5
+    };
 
-      const volumeUnits = {
-        ml: 1,
-        cups: 240,
-        tbsp: 15,
-        tsp: 5
-      };
+    let result = 0;
 
-      let result = 0;
-
-      if (from === to) {
-        result = value;
-      } else if (from === "grams" && to in volumeUnits) {
-        const mlValue = value / densities[ingredient];
-        result = mlValue / volumeUnits[to];
-      } else if (to === "grams" && from in volumeUnits) {
-        const mlValue = value * volumeUnits[from];
-        result = mlValue * densities[ingredient];
-      } else if (from in volumeUnits && to in volumeUnits) {
-        const mlValue = value * volumeUnits[from];
-        result = mlValue / volumeUnits[to];
-      } else {
-        document.getElementById("conversionResult").innerText = "Unsupported conversion.";
-        return;
-      }
-
-      const fraction = decimalToFraction(result);
-      document.getElementById("conversionResult").innerText = `${result.toFixed(2)} or ${fraction} ${to}`;
+    if (from === to) {
+      result = value;
+    } else if (from === "grams" && to in volumeUnits) {
+      const mlValue = value / densities[ingredient];
+      result = mlValue / volumeUnits[to];
+    } else if (to === "grams" && from in volumeUnits) {
+      const mlValue = value * volumeUnits[from];
+      result = mlValue * densities[ingredient];
+    } else if (from in volumeUnits && to in volumeUnits) {
+      const mlValue = value * volumeUnits[from];
+      result = mlValue / volumeUnits[to];
+    } else {
+      document.getElementById("conversionResult").innerText = "Unsupported conversion.";
+      return;
     }
 
-    function scaleRecipe() {
-      const flour = parseFloat(document.getElementById('flour').value);
-      if (!flour || flour <= 0) {
-        document.getElementById('scaledRecipe').innerText = "Please enter a valid amount of flour.";
-        return;
-      }
+    const fraction = decimalToFraction(result);
+    const text = fraction
+      ? `${result.toFixed(2)} or ${fraction} ${to}`
+      : `${result.toFixed(2)} ${to}`;
+    document.getElementById("conversionResult").innerText = text;
+  }
 
-      const factor = flour / 2000;
-      const yeast = (20 * factor).toFixed(1);
-      const sugar = (400 * factor).toFixed(1);
-      const salt = (24 * factor).toFixed(1);
-      const water = (1120 * factor).toFixed(1);
-      const shortening = (120 * factor).toFixed(1);
-      const breads = Math.floor(123 * factor);
-
-      document.getElementById('scaledRecipe').innerHTML =
-        `<strong>Adjusted Ingredients:</strong><br>
-        - Flour: ${flour} g<br>
-        - Yeast: ${yeast} g<br>
-        - Sugar: ${sugar} g<br>
-        - Salt: ${salt} g<br>
-        - Water: ${water} ml<br>
-        - Shortening: ${shortening} g<br>
-        <br><strong>Estimated Yield:</strong> ${breads} bread(s)`;
+  function scaleRecipe() {
+    const flour = parseFloat(document.getElementById('flour').value);
+    if (!flour || flour <= 0) {
+      document.getElementById('scaledRecipe').innerText = "Please enter a valid amount of flour.";
+      return;
     }
-  </script>
+
+    const factor = flour / 2000;
+    const yeast = (20 * factor).toFixed(1);
+    const sugar = (400 * factor).toFixed(1);
+    const salt = (24 * factor).toFixed(1);
+    const water = (1120 * factor).toFixed(1);
+    const shortening = (120 * factor).toFixed(1);
+    const breads = Math.floor(123 * factor);
+
+    document.getElementById('scaledRecipe').innerHTML =
+      `<strong>Adjusted Ingredients:</strong><br>
+      - Flour: ${flour} g<br>
+      - Yeast: ${yeast} g<br>
+      - Sugar: ${sugar} g<br>
+      - Salt: ${salt} g<br>
+      - Water: ${water} ml<br>
+      - Shortening: ${shortening} g<br>
+      <br><strong>Estimated Yield:</strong> ${breads} bread(s)`;
+  }
+</script>
 </body>
 </html>

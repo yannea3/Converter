@@ -1,176 +1,129 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Kitchen Helper: Convert & Scale Recipes Easily</title>
+  <meta charset="UTF-8" />
+  <title>Flour & Bread Helper</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       padding: 20px;
       max-width: 600px;
       margin: auto;
-      background: #f9f9f9;
     }
     h1 {
       text-align: center;
+      margin-bottom: 30px;
     }
     h2 {
       margin-top: 40px;
+      color: #444;
     }
-    input, select, button {
+    label, input, button {
+      display: block;
+      margin: 10px 0;
       width: 100%;
-      padding: 10px;
-      margin-top: 8px;
-      margin-bottom: 15px;
-      box-sizing: border-box;
     }
     .result {
+      margin-top: 10px;
       font-weight: bold;
-      background-color: #fff4cc;
-      padding: 10px;
-      border-radius: 4px;
+      color: #333;
     }
   </style>
 </head>
 <body>
+  <h1>Flour & Bread Helper</h1>
 
-  <h1>Kitchen Helper: Convert & Scale Recipes Easily</h1>
-
-  <!-- UNIT CONVERTER SECTION -->
   <h2>Unit Converter</h2>
-  <label for="amount">Amount:</label>
-  <input type="number" id="amount" placeholder="Enter value">
+  <label for="gramsInput">Enter grams of flour or butter:</label>
+  <input type="text" id="gramsInput" placeholder="e.g. 1100 grams of flour">
+  <button onclick="convertGramsToCups()">Convert</button>
+  <div id="converterResult" class="result"></div>
 
-  <label for="fromUnit">From Unit:</label>
-  <select id="fromUnit">
-    <option value="grams">grams</option>
-    <option value="milliliters">milliliters</option>
-  </select>
-
-  <label for="toUnit">To Unit:</label>
-  <select id="toUnit">
-    <option value="cups">cups</option>
-    <option value="tablespoons">tablespoons</option>
-    <option value="teaspoons">teaspoons</option>
-  </select>
-
-  <label for="ingredient">Ingredient (optional for better accuracy):</label>
-  <select id="ingredient">
-    <option value="">-- Select --</option>
-    <option value="flour">Flour</option>
-    <option value="sugar">Sugar</option>
-    <option value="butter">Butter</option>
-    <option value="water">Water</option>
-    <option value="oil">Oil</option>
-  </select>
-
-  <button onclick="convertUnits()">Convert</button>
-  <div id="conversionResult" class="result"></div>
-
-  <!-- RECIPE SCALER SECTION -->
   <h2>Recipe Scaler</h2>
-  <label for="newFlour">New Flour Amount (grams):</label>
-  <input type="number" id="newFlour" placeholder="e.g. 400">
-
+  <label for="flourInput">Enter flour amount (grams):</label>
+  <input type="number" id="flourInput" placeholder="e.g. 400">
   <button onclick="scaleRecipe()">Scale Recipe</button>
-  <div id="scaledRecipe" class="result"></div>
+  <div id="scalerResult" class="result"></div>
 
   <script>
-    const densities = {
-      flour: 120,
-      sugar: 200,
-      butter: 227,
-      water: 236.6,
-      oil: 218
-    };
-
     function decimalToFraction(decimal) {
+      if (decimal >= 10) return decimal.toFixed(2);
+
+      const whole = Math.floor(decimal);
+      const frac = decimal - whole;
+      let fraction = "";
+
       const fractions = [
-        { dec: 0.125, frac: '⅛' },
-        { dec: 0.25, frac: '¼' },
-        { dec: 0.33, frac: '⅓' },
-        { dec: 0.5, frac: '½' },
-        { dec: 0.66, frac: '⅔' },
-        { dec: 0.75, frac: '¾' },
-        { dec: 0.875, frac: '⅞' }
+        [1/8, "⅛"],
+        [1/4, "¼"],
+        [1/3, "⅓"],
+        [3/8, "⅜"],
+        [1/2, "½"],
+        [5/8, "⅝"],
+        [2/3, "⅔"],
+        [3/4, "¾"],
+        [7/8, "⅞"]
       ];
-      for (let i = 0; i < fractions.length; i++) {
-        if (Math.abs(decimal - fractions[i].dec) < 0.05) {
-          return fractions[i].frac;
+
+      for (let [dec, sym] of fractions) {
+        if (Math.abs(frac - dec) < 0.05) {
+          fraction = sym;
+          break;
         }
       }
-      return null;
+
+      return whole ? `${whole}${fraction ? " " + fraction : ""}` : fraction || decimal.toFixed(2);
     }
 
-    function convertUnits() {
-      const amount = parseFloat(document.getElementById('amount').value);
-      const from = document.getElementById('fromUnit').value;
-      const to = document.getElementById('toUnit').value;
-      const ingredient = document.getElementById('ingredient').value.toLowerCase();
+    function convertGramsToCups() {
+      const input = document.getElementById("gramsInput").value.toLowerCase();
+      const resultEl = document.getElementById("converterResult");
 
-      if (isNaN(amount) || amount <= 0) {
-        document.getElementById('conversionResult').innerText = "Please enter a valid number.";
+      const match = input.match(/(\d+\.?\d*)\s*grams?\s+of\s+(flour|butter)/);
+      if (!match) {
+        resultEl.textContent = "Please enter a valid input like '1100 grams of flour'.";
         return;
       }
 
-      let result = amount;
-      let density = ingredient && densities[ingredient] ? densities[ingredient] : null;
+      const grams = parseFloat(match[1]);
+      const ingredient = match[2];
 
-      if ((from === "grams" || from === "milliliters") && to === "cups") {
-        if (!density) {
-          document.getElementById('conversionResult').innerText = "Please select a known ingredient to convert accurately.";
-          return;
-        }
-        result = amount / density;
-      } else if ((from === "grams" || from === "milliliters") && to === "tablespoons") {
-        if (!density) {
-          document.getElementById('conversionResult').innerText = "Please select a known ingredient to convert accurately.";
-          return;
-        }
-        result = (amount / density) * 16;
-      } else if ((from === "grams" || from === "milliliters") && to === "teaspoons") {
-        if (!density) {
-          document.getElementById('conversionResult').innerText = "Please select a known ingredient to convert accurately.";
-          return;
-        }
-        result = (amount / density) * 48;
-      }
+      let gramsPerCup = ingredient === "butter" ? 227 : 120;
+      let cups = grams / gramsPerCup;
+      let approx = decimalToFraction(cups);
 
-      const whole = Math.floor(result);
-      const decimal = result - whole;
-      const frac = decimalToFraction(decimal);
-      let pretty = result.toFixed(2);
-      if (frac && result < 10) {
-        pretty = `${whole > 0 ? whole : ''}${frac}`;
-      }
-
-      document.getElementById('conversionResult').innerText = `Result: ${result.toFixed(2)} or ${pretty} ${to}`;
+      resultEl.textContent = `Result: ${cups.toFixed(2)} or ${approx} cup/s`;
     }
 
     function scaleRecipe() {
-      const original = 2000;
-      const newFlour = parseFloat(document.getElementById("newFlour").value);
+      const flourGrams = parseFloat(document.getElementById("flourInput").value);
+      const resultEl = document.getElementById("scalerResult");
 
-      if (isNaN(newFlour) || newFlour <= 0) {
-        document.getElementById("scaledRecipe").innerText = "Please enter a valid amount of flour.";
+      if (isNaN(flourGrams) || flourGrams <= 0) {
+        resultEl.textContent = "Please enter a valid amount of flour.";
         return;
       }
 
-      const factor = newFlour / original;
+      const originalFlour = 1120; // grams
+      const originalBreads = 123;
 
-      const yeast = 20 * factor;
-      const sugar = 400 * factor;
-      const salt = 24 * factor;
-      const water = 1120 * factor;
-      const shortening = 160 * factor;
+      const factor = flourGrams / originalFlour;
+      const yeast = (16 * factor).toFixed(1);
+      const sugar = (90 * factor).toFixed(1);
+      const salt = (18 * factor).toFixed(1);
+      const water = (720 * factor).toFixed(1);
+      const breads = Math.round(originalBreads * factor);
 
-      document.getElementById("scaledRecipe").innerHTML =
-        `Adjusted Recipe for ${newFlour}g Flour:<br>
-        Yeast: ${yeast.toFixed(1)} g<br>
-        Sugar: ${sugar.toFixed(1)} g<br>
-        Salt: ${salt.toFixed(1)} g<br>
-        Water: ${water.toFixed(1)} ml<br>
-        Shortening: ${shortening.toFixed(1)} g`;
+      resultEl.innerHTML =
+        `Scaled Recipe:
+        <ul>
+          <li>Flour: ${flourGrams}g</li>
+          <li>Yeast: ${yeast}g</li>
+          <li>Sugar: ${sugar}g</li>
+          <li>Salt: ${salt}g</li>
+          <li>Water: ${water}g</li>
+        </ul>
+        Estimated Output: ~${breads} breads`;
     }
   </script>
 </body>

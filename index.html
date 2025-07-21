@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bread Recipe Converter</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 1rem;
+      max-width: 500px;
+      margin: auto;
+      background-color: #f8f8f8;
+    }
+    h1 {
+      text-align: center;
+      font-size: 1.5rem;
+    }
+    label {
+      display: block;
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+    input {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 0.5rem;
+      font-size: 1rem;
+    }
+    .results {
+      margin-top: 2rem;
+      padding: 1rem;
+      background: #fff;
+      border-radius: 5px;
+    }
+    .result-item {
+      margin-bottom: 0.75rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Bread Recipe Converter</h1>
+  <label for="flour">Flour (grams):</label>
+  <input type="number" id="flour" value="300" min="1" />
+
+  <div class="results" id="results"></div>
+
+  <script>
+    const flourInput = document.getElementById('flour');
+    const resultsDiv = document.getElementById('results');
+
+    function updateResults() {
+      const flour = parseFloat(flourInput.value);
+      if (isNaN(flour) || flour <= 0) {
+        resultsDiv.innerHTML = '<p>Please enter a valid amount of flour.</p>';
+        return;
+      }
+
+      const ratio = flour / 2000; // base recipe is for 2000g
+
+      const ingredients = {
+        Yeast: 20 * ratio,
+        Sugar: 400 * ratio,
+        Salt: 24 * ratio,
+        Water: 1120 * ratio,
+        Shortening: 140 * ratio,
+      };
+
+      const conversions = {
+        WaterCups: ingredients.Water / 240,
+        ShorteningTbsp: ingredients.Shortening / 15,
+        BreadYield: 123 * ratio,
+      };
+
+      resultsDiv.innerHTML = `
+        <div class="result-item"><strong>Yeast:</strong> ${ingredients.Yeast.toFixed(1)} g</div>
+        <div class="result-item"><strong>Sugar:</strong> ${ingredients.Sugar.toFixed(1)} g</div>
+        <div class="result-item"><strong>Salt:</strong> ${ingredients.Salt.toFixed(1)} g</div>
+        <div class="result-item"><strong>Water:</strong> ${ingredients.Water.toFixed(1)} g (${conversions.WaterCups.toFixed(2)} cups)</div>
+        <div class="result-item"><strong>Shortening:</strong> ${ingredients.Shortening.toFixed(1)} g (${conversions.ShorteningTbsp.toFixed(2)} tbsp)</div>
+        <div class="result-item"><strong>Estimated Breads:</strong> ${conversions.BreadYield.toFixed(0)} pcs</div>
+      `;
+    }
+
+    flourInput.addEventListener('input', updateResults);
+    window.addEventListener('DOMContentLoaded', updateResults);
+  </script>
+</body>
+</html>

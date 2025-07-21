@@ -1,135 +1,224 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Flour & Bread Helper</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Baking Helper</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       max-width: 600px;
-      margin: auto;
+      margin: 0 auto;
       padding: 20px;
+      line-height: 1.6;
     }
-
-    h1 {
+    h1, h2 {
       text-align: center;
     }
-
-    section {
-      margin-bottom: 30px;
-    }
-
-    label, input, button {
-      display: block;
-      margin-top: 10px;
-    }
-
-    .result {
-      margin-top: 10px;
+    label {
       font-weight: bold;
     }
-
-    input[type="number"] {
-      width: 200px;
+    input, select, button {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      margin-bottom: 15px;
+    }
+    .section {
+      margin-bottom: 40px;
+    }
+    .result {
+      font-weight: bold;
+      font-size: 1.2em;
     }
   </style>
 </head>
 <body>
-  <h1>Flour & Bread Helper</h1>
 
-  <section>
+  <h1>Baking Helper</h1>
+
+  <!-- Unit Converter -->
+  <div class="section">
     <h2>Unit Converter</h2>
-    <label for="convert-input">Enter grams of flour or butter:</label>
-    <input type="number" id="convert-input" placeholder="e.g., 1100">
+    <label for="unitValue">Enter value:</label>
+    <input type="number" id="unitValue" step="any" placeholder="e.g. 1100">
+
+    <label for="unitFrom">Convert from:</label>
+    <select id="unitFrom">
+      <option value="grams">Grams</option>
+      <option value="ml">Milliliters</option>
+      <option value="cups">Cups</option>
+      <option value="tbsp">Tablespoons</option>
+      <option value="tsp">Teaspoons</option>
+    </select>
+
+    <label for="unitTo">Convert to:</label>
+    <select id="unitTo">
+      <option value="grams">Grams</option>
+      <option value="ml">Milliliters</option>
+      <option value="cups">Cups</option>
+      <option value="tbsp">Tablespoons</option>
+      <option value="tsp">Teaspoons</option>
+    </select>
+
+    <label for="ingredient">Ingredient (for density):</label>
+    <select id="ingredient">
+      <option value="flour">Flour</option>
+      <option value="sugar">Sugar</option>
+      <option value="butter">Butter</option>
+      <option value="water">Water</option>
+      <option value="milk">Milk</option>
+    </select>
+
     <button onclick="convert()">Convert</button>
-    <div id="convert-result" class="result"></div>
-  </section>
+    <p class="result" id="conversionResult"></p>
+  </div>
 
-  <section>
+  <!-- Recipe Scaler -->
+  <div class="section">
     <h2>Recipe Scaler</h2>
-    <label for="flour-input">Enter flour amount (grams):</label>
-    <input type="number" id="flour-input" placeholder="e.g., 500">
+    <p>This will scale your own custom recipe based on how much flour you have.</p>
+
+    <label for="origFlour">Original recipe - Flour (g):</label>
+    <input type="number" id="origFlour" placeholder="e.g. 2000" />
+
+    <label for="flour">How much flour do you have? (grams)</label>
+    <input type="number" id="flour" placeholder="e.g. 400" />
+
+    <div id="ingredientList">
+      <p><strong>Ingredients:</strong></p>
+      <!-- Ingredient rows will appear here -->
+    </div>
+
+    <button onclick="addIngredient()">+ Add Ingredient</button>
+    <br><br>
     <button onclick="scaleRecipe()">Scale Recipe</button>
-    <div id="scale-result" class="result"></div>
-  </section>
 
-  <script>
-    function decimalToFraction(value) {
-      const tolerance = 1e-2;
-      let h1 = 1, h2 = 0, k1 = 0, k2 = 1;
-      let b = value;
-      do {
-        let a = Math.floor(b);
-        let aux = h1; h1 = a * h1 + h2; h2 = aux;
-        aux = k1; k1 = a * k1 + k2; k2 = aux;
-        b = 1 / (b - a);
-      } while (Math.abs(value - h1 / k1) > value * tolerance);
+    <p class="result" id="scaledRecipe"></p>
+  </div>
 
-      if (k1 <= 9) return `${h1}/${k1}`;
-      return null;
+<script>
+  const ingredients = [];
+
+  function addIngredient() {
+    const container = document.createElement("div");
+    container.classList.add("ingredient-item");
+
+    const select = document.createElement("select");
+    select.innerHTML = `
+      <option value="">-- Select Ingredient --</option>
+      <option value="Yeast">Yeast (g)</option>
+      <option value="Sugar">Sugar (g)</option>
+      <option value="Salt">Salt (g)</option>
+      <option value="Water">Water (ml)</option>
+      <option value="Shortening">Shortening (g)</option>
+      <option value="Milk">Milk (ml)</option>
+      <option value="Oil">Oil (ml)</option>
+      <option value="Butter">Butter (g)</option>
+    `;
+
+    const input = document.createElement("input");
+    input.type = "number";
+    input.placeholder = "Original amount";
+
+    container.appendChild(select);
+    container.appendChild(input);
+
+    document.getElementById("ingredientList").appendChild(container);
+  }
+
+  function decimalToFraction(value) {
+    const tolerance = 1e-2;
+    let h1 = 1, h2 = 0, k1 = 0, k2 = 1;
+    let b = value;
+    do {
+      let a = Math.floor(b);
+      let aux = h1; h1 = a * h1 + h2; h2 = aux;
+      aux = k1; k1 = a * k1 + k2; k2 = aux;
+      b = 1 / (b - a);
+    } while (Math.abs(value - h1 / k1) > value * tolerance);
+
+    if (k1 <= 9) return `${h1}/${k1}`;
+    return null;
+  }
+
+  function convert() {
+    const value = parseFloat(document.getElementById('unitValue').value);
+    const from = document.getElementById('unitFrom').value;
+    const to = document.getElementById('unitTo').value;
+    const ingredient = document.getElementById('ingredient').value;
+
+    if (isNaN(value) || value <= 0) {
+      document.getElementById("conversionResult").innerText = "Please enter a valid amount.";
+      return;
     }
 
-    function convert() {
-      const input = document.getElementById("convert-input").value;
-      const resultDiv = document.getElementById("convert-result");
-      const grams = parseFloat(input);
-      if (isNaN(grams)) {
-        resultDiv.textContent = "Please enter a valid number.";
-        return;
-      }
+    const densities = {
+      flour: 0.53,
+      sugar: 0.85,
+      butter: 0.96,
+      water: 1.00,
+      milk: 1.03
+    };
 
-      let cups;
-      let ingredientType;
+    const volumeUnits = {
+      ml: 1,
+      cups: 240,
+      tbsp: 15,
+      tsp: 5
+    };
 
-      if (grams <= 300) {
-        // Assume it's butter
-        cups = grams / 227; // 1 cup butter ≈ 227g
-        ingredientType = "butter";
-      } else {
-        // Assume it's flour
-        cups = grams / 120; // 1 cup flour ≈ 120g
-        ingredientType = "flour";
-      }
+    let result = 0;
 
-      const rounded = Math.round(cups * 100) / 100;
-      const fraction = decimalToFraction(cups);
-      let display = `${rounded} cup/s`;
-      if (fraction) {
-        display += ` or ${fraction} cup/s`;
-      }
-
-      resultDiv.textContent = `Result: ${display} (${ingredientType})`;
+    if (from === to) {
+      result = value;
+    } else if (from === "grams" && to in volumeUnits) {
+      const mlValue = value / densities[ingredient];
+      result = mlValue / volumeUnits[to];
+    } else if (to === "grams" && from in volumeUnits) {
+      const mlValue = value * volumeUnits[from];
+      result = mlValue * densities[ingredient];
+    } else if (from in volumeUnits && to in volumeUnits) {
+      const mlValue = value * volumeUnits[from];
+      result = mlValue / volumeUnits[to];
+    } else {
+      document.getElementById("conversionResult").innerText = "Unsupported conversion.";
+      return;
     }
 
-    function scaleRecipe() {
-      const flourInput = document.getElementById("flour-input").value;
-      const flour = parseFloat(flourInput);
-      const resultDiv = document.getElementById("scale-result");
+    const fraction = decimalToFraction(result);
+    const display = fraction
+      ? `${result.toFixed(2)} or ${fraction} ${to}`
+      : `${result.toFixed(2)} ${to}`;
 
-      if (isNaN(flour) || flour <= 0) {
-        resultDiv.textContent = "Please enter a valid amount of flour.";
-        return;
-      }
+    document.getElementById("conversionResult").innerText = `Result: ${display}`;
+  }
 
-      const sugar = (flour * 0.5).toFixed(0);
-      const butter = (flour * 0.4).toFixed(0);
-      const yeast = (flour * 0.02).toFixed(1);
-      const salt = (flour * 0.018).toFixed(1);
-      const water = (flour * 0.7).toFixed(0);
+  function scaleRecipe() {
+    const origFlour = parseFloat(document.getElementById('origFlour').value);
+    const flour = parseFloat(document.getElementById('flour').value);
+    const list = document.querySelectorAll(".ingredient-item");
 
-      const estimatedBread = Math.round(flour / 500); // 500g flour ≈ 1 loaf
-
-      resultDiv.innerHTML = `
-        <strong>Scaled Recipe:</strong><br>
-        Flour: ${flour}g<br>
-        Sugar: ${sugar}g<br>
-        Butter: ${butter}g<br>
-        Yeast: ${yeast}g<br>
-        Salt: ${salt}g<br>
-        Water: ${water}g<br><br>
-        Estimated Bread Output: ${estimatedBread} loaf${estimatedBread > 1 ? 's' : ''}
-      `;
+    if (!origFlour || !flour || origFlour <= 0 || flour <= 0) {
+      document.getElementById('scaledRecipe').innerText = "Please enter valid flour amounts.";
+      return;
     }
-  </script>
+
+    const factor = flour / origFlour;
+    let output = `<strong>Adjusted Ingredients:</strong><br>`;
+    output += `- Flour: ${flour} g<br>`;
+
+    list.forEach(item => {
+      const name = item.querySelector("select").value;
+      const amount = parseFloat(item.querySelector("input").value);
+      if (name && !isNaN(amount)) {
+        const scaled = (amount * factor).toFixed(1);
+        output += `- ${name}: ${scaled}<br>`;
+      }
+    });
+
+    document.getElementById('scaledRecipe').innerHTML = output;
+  }
+</script>
 </body>
 </html>

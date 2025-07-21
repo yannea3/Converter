@@ -76,39 +76,83 @@
 
   <!-- Recipe Scaler -->
   <div class="section">
-    <h2>Recipe Scaler</h2>
-    <p>This will scale your own custom recipe based on how much flour you have.</p>
+  <h2>Recipe Scaler</h2>
+  <p>This will scale your own custom recipe based on how much flour you have.</p>
 
-    <label for="origFlour">Original recipe - Flour (g):</label>
-    <input type="number" id="origFlour" placeholder="e.g. 2000" />
+  <label for="origFlour">Original recipe - Flour (g):</label>
+  <input type="number" id="origFlour" placeholder="e.g. 2000" />
 
-    <label for="origYeast">Original recipe - Yeast (g):</label>
-    <input type="number" id="origYeast" placeholder="e.g. 20" />
+  <label for="flour">How much flour do you have? (grams)</label>
+  <input type="number" id="flour" placeholder="e.g. 400" />
 
-    <label for="origSugar">Original recipe - Sugar (g):</label>
-    <input type="number" id="origSugar" placeholder="e.g. 400" />
-
-    <label for="origSalt">Original recipe - Salt (g):</label>
-    <input type="number" id="origSalt" placeholder="e.g. 24" />
-
-    <label for="origWater">Original recipe - Water (ml):</label>
-    <input type="number" id="origWater" placeholder="e.g. 1120" />
-
-    <label for="origShortening">Original recipe - Shortening (g):</label>
-    <input type="number" id="origShortening" placeholder="e.g. 120" />
-
-    <label for="origYield">Original recipe - Estimated breads:</label>
-    <input type="number" id="origYield" placeholder="e.g. 123" />
-
-    <label for="flour">How much flour do you have? (grams)</label>
-    <input type="number" id="flour" placeholder="e.g. 400" />
-
-    <button onclick="scaleRecipe()">Scale Recipe</button>
-
-    <p class="result" id="scaledRecipe"></p>
+  <div id="ingredientList">
+    <p><strong>Ingredients:</strong></p>
+    <!-- Ingredient rows will appear here -->
   </div>
 
-  <script>
+  <button onclick="addIngredient()">+ Add Ingredient</button>
+  <br><br>
+  <button onclick="scaleRecipe()">Scale Recipe</button>
+
+  <p class="result" id="scaledRecipe"></p>
+</div>
+
+<script>
+  const ingredients = [];
+
+  function addIngredient() {
+    const container = document.createElement("div");
+    container.classList.add("ingredient-item");
+
+    const select = document.createElement("select");
+    select.innerHTML = `
+      <option value="">-- Select Ingredient --</option>
+      <option value="Yeast">Yeast (g)</option>
+      <option value="Sugar">Sugar (g)</option>
+      <option value="Salt">Salt (g)</option>
+      <option value="Water">Water (ml)</option>
+      <option value="Shortening">Shortening (g)</option>
+      <option value="Milk">Milk (ml)</option>
+      <option value="Oil">Oil (ml)</option>
+      <option value="Butter">Butter (g)</option>
+    `;
+
+    const input = document.createElement("input");
+    input.type = "number";
+    input.placeholder = "Original amount";
+
+    container.appendChild(select);
+    container.appendChild(input);
+
+    document.getElementById("ingredientList").appendChild(container);
+  }
+
+  function scaleRecipe() {
+    const origFlour = parseFloat(document.getElementById('origFlour').value);
+    const flour = parseFloat(document.getElementById('flour').value);
+    const list = document.querySelectorAll(".ingredient-item");
+
+    if (!origFlour || !flour || origFlour <= 0 || flour <= 0) {
+      document.getElementById('scaledRecipe').innerText = "Please enter valid flour amounts.";
+      return;
+    }
+
+    const factor = flour / origFlour;
+    let output = `<strong>Adjusted Ingredients:</strong><br>`;
+    output += `- Flour: ${flour} g<br>`;
+
+    list.forEach(item => {
+      const name = item.querySelector("select").value;
+      const amount = parseFloat(item.querySelector("input").value);
+      if (name && !isNaN(amount)) {
+        const scaled = (amount * factor).toFixed(1);
+        output += `- ${name}: ${scaled}<br>`;
+      }
+    });
+
+    document.getElementById('scaledRecipe').innerHTML = output;
+  }
+</script>
   function decimalToFraction(value) {
     const tolerance = 1e-2;
     let h1 = 1, h2 = 0, k1 = 0, k2 = 1;

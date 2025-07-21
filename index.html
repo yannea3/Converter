@@ -1,174 +1,190 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Recipe Converter</title>
   <style>
     body {
-      font-family: sans-serif;
-      margin: 0;
-      padding: 0;
-      background: #f7f7f7;
-      color: #333;
-    }
-    header {
-      background: #ffcc99;
-      padding: 1em;
-      text-align: center;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
-    nav {
-      margin-top: 0.5em;
-    }
-    nav a {
-      margin: 0 10px;
-      text-decoration: none;
-      color: #333;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    section {
-      padding: 2em;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 600px;
+      margin: auto;
+      line-height: 1.6;
     }
     h2 {
-      color: #d2691e;
+      border-bottom: 2px solid #ddd;
+      padding-bottom: 5px;
     }
     input, select {
-      padding: 0.5em;
-      margin: 0.5em 0;
+      padding: 6px;
+      margin: 5px 0;
       width: 100%;
-      max-width: 300px;
+      box-sizing: border-box;
     }
-    .result {
-      margin-top: 1em;
+    label {
       font-weight: bold;
+      display: block;
+      margin-top: 10px;
+    }
+    .output {
+      margin-top: 10px;
+      background: #f4f4f4;
+      padding: 10px;
+    }
+    .note {
+      font-size: 0.9em;
+      color: gray;
     }
   </style>
 </head>
 <body>
 
-<header>
-  <h1>Recipe Converter</h1>
-  <nav>
-    <a onclick="scrollToSection('converter')">Unit Converter</a>
-    <a onclick="scrollToSection('instructions')">Instructions</a>
-  </nav>
-</header>
+  <h2>🔁 Unit Converter</h2>
+  <label for="ingredient">Ingredient</label>
+  <select id="ingredient">
+    <option value="flour">Flour</option>
+    <option value="sugar">Sugar</option>
+    <option value="butter">Butter</option>
+    <option value="water">Water</option>
+    <option value="custom">Custom (enter density)</option>
+  </select>
 
-<section id="converter">
-  <h2>Unit Converter</h2>
-  <label for="amount">Enter amount:</label><br>
-  <input type="number" id="amount" placeholder="e.g. 120"><br>
+  <label for="customDensity">Custom Density (g/ml)</label>
+  <input type="number" id="customDensity" placeholder="Only if custom ingredient" step="0.01" disabled>
 
-  <label for="unitFrom">From:</label><br>
-  <select id="unitFrom">
+  <label for="valueInput">Amount</label>
+  <input type="number" id="valueInput" placeholder="Enter value" />
+
+  <label for="fromUnit">From Unit</label>
+  <select id="fromUnit">
+    <option value="grams">Grams (g)</option>
     <option value="ml">Milliliters (ml)</option>
-    <option value="cup">Cups</option>
-    <option value="tbsp">Tablespoons (tbsp)</option>
-    <option value="tsp">Teaspoons (tsp)</option>
-    <option value="g">Grams (g)</option>
-  </select><br>
+    <option value="cups">Cups</option>
+    <option value="tbsp">Tablespoons</option>
+    <option value="tsp">Teaspoons</option>
+  </select>
 
-  <label for="unitTo">To:</label><br>
-  <select id="unitTo">
+  <label for="toUnit">To Unit</label>
+  <select id="toUnit">
+    <option value="grams">Grams (g)</option>
     <option value="ml">Milliliters (ml)</option>
-    <option value="cup">Cups</option>
-    <option value="tbsp">Tablespoons (tbsp)</option>
-    <option value="tsp">Teaspoons (tsp)</option>
-    <option value="g">Grams (g)</option>
-  </select><br>
+    <option value="cups">Cups</option>
+    <option value="tbsp">Tablespoons</option>
+    <option value="tsp">Teaspoons</option>
+  </select>
 
-  <label for="density">Custom Density (optional, g/ml):</label><br>
-  <input type="number" id="density" step="0.01" placeholder="Only for grams ⇄ ml"><br>
+  <button onclick="convert()">Convert</button>
 
-  <button onclick="convertUnits()">Convert</button>
+  <div class="output" id="convertResult"></div>
 
-  <div class="result" id="result"></div>
-</section>
+  <p class="note">Note: Cups may be shown as fractions for convenience.</p>
 
-<section id="instructions">
-  <h2>How to Use This Page</h2>
-  <p>This tool helps you convert between common baking and cooking units like cups, grams, tablespoons, and more.</p>
-  <ul>
-    <li>Enter the number and select the units to convert from and to.</li>
-    <li>If converting between grams and milliliters, enter the ingredient’s density (e.g., flour ≈ 0.53).</li>
-    <li>The result will show both decimal and easy-to-read fractions for cups.</li>
-    <li>Scroll up anytime to use the converter again.</li>
-  </ul>
-</section>
+  <hr/>
 
-<script>
-  const unitToML = {
-    cup: 240,
-    tbsp: 15,
-    tsp: 5,
-    ml: 1
-  };
+  <h2>🥖 Recipe Scaler (Based on Flour)</h2>
+  <label for="flour">Enter your flour amount (grams):</label>
+  <input type="number" id="flour" value="400" />
 
-  const commonFractions = [
-    { dec: 0.125, frac: "1/8" },
-    { dec: 0.25, frac: "1/4" },
-    { dec: 0.33, frac: "1/3" },
-    { dec: 0.375, frac: "3/8" },
-    { dec: 0.5, frac: "1/2" },
-    { dec: 0.66, frac: "2/3" },
-    { dec: 0.67, frac: "2/3" },
-    { dec: 0.75, frac: "3/4" },
-    { dec: 1.0, frac: "1" }
-  ];
+  <button onclick="scaleRecipe()">Scale Recipe</button>
 
-  function toFraction(value) {
-    let closest = commonFractions.reduce((prev, curr) => {
-      return Math.abs(curr.dec - value) < Math.abs(prev.dec - value) ? curr : prev;
+  <div class="output" id="recipeResult"></div>
+
+  <script>
+    const densities = {
+      flour: 0.53,
+      sugar: 0.85,
+      butter: 0.96,
+      water: 1,
+    };
+
+    const cupFractions = [
+      [1, '1'],
+      [0.75, '3/4'],
+      [0.66, '2/3'],
+      [0.5, '1/2'],
+      [0.33, '1/3'],
+      [0.25, '1/4']
+    ];
+
+    document.getElementById("ingredient").addEventListener("change", function () {
+      const ingredient = this.value;
+      const customDensityInput = document.getElementById("customDensity");
+      customDensityInput.disabled = ingredient !== "custom";
     });
-    return `${value.toFixed(2)} (≈ ${closest.frac})`;
-  }
 
-  function convertUnits() {
-    const amount = parseFloat(document.getElementById("amount").value);
-    const from = document.getElementById("unitFrom").value;
-    const to = document.getElementById("unitTo").value;
-    const density = parseFloat(document.getElementById("density").value);
+    function convert() {
+      const val = parseFloat(document.getElementById("valueInput").value);
+      const from = document.getElementById("fromUnit").value;
+      const to = document.getElementById("toUnit").value;
+      const ingredient = document.getElementById("ingredient").value;
+      const customDensity = parseFloat(document.getElementById("customDensity").value);
 
-    if (isNaN(amount)) {
-      document.getElementById("result").textContent = "Please enter a valid number.";
-      return;
-    }
+      let density = densities[ingredient];
+      if (ingredient === "custom") {
+        if (isNaN(customDensity)) {
+          alert("Please enter a custom density.");
+          return;
+        }
+        density = customDensity;
+      }
 
-    let result;
-
-    // Volume to volume
-    if (unitToML[from] && unitToML[to]) {
-      const ml = amount * unitToML[from];
-      const converted = ml / unitToML[to];
-      result = (to === "cup") ? toFraction(converted) + " cups" : `${converted.toFixed(2)} ${to}`;
-    }
-
-    // Grams to ml or vice versa
-    else if ((from === "g" && to === "ml") || (from === "ml" && to === "g")) {
-      if (!density) {
-        document.getElementById("result").textContent = "Please enter the density to convert grams and ml.";
+      if (isNaN(val) || isNaN(density)) {
+        alert("Please fill in all fields.");
         return;
       }
-      const converted = (from === "g") ? amount / density : amount * density;
-      result = `${converted.toFixed(2)} ${to}`;
+
+      let grams;
+      if (from === "grams") grams = val;
+      else if (from === "ml") grams = val * density;
+      else if (from === "cups") grams = val * 240 * density;
+      else if (from === "tbsp") grams = val * 15 * density;
+      else if (from === "tsp") grams = val * 5 * density;
+
+      let result;
+      if (to === "grams") result = grams;
+      else if (to === "ml") result = grams / density;
+      else if (to === "cups") result = grams / (240 * density);
+      else if (to === "tbsp") result = grams / (15 * density);
+      else if (to === "tsp") result = grams / (5 * density);
+
+      let display = result.toFixed(2);
+      if (to === "cups") {
+        const closest = cupFractions.reduce((prev, curr) =>
+          Math.abs(curr[0] - result) < Math.abs(prev[0] - result) ? curr : prev
+        );
+        display += ` (~${closest[1]} cup)`;
+      }
+
+      document.getElementById("convertResult").innerText = `Result: ${display} ${to}`;
     }
 
-    // Gram to gram or unsupported
-    else if (from === "g" && to === "g") {
-      result = `${amount.toFixed(2)} g`;
+    function scaleRecipe() {
+      const flour = parseFloat(document.getElementById("flour").value);
+      if (isNaN(flour)) {
+        alert("Please enter a valid flour amount.");
+        return;
+      }
+
+      const ratio = flour / 2000;
+      const yeast = 20 * ratio;
+      const sugar = 400 * ratio;
+      const salt = 24 * ratio;
+      const water = 1120 * ratio;
+      const shortening = 160 * ratio;
+      const estimatedPieces = Math.round(123 * ratio);
+
+      const result = `
+        Yeast: ${yeast.toFixed(1)} g<br/>
+        Sugar: ${sugar.toFixed(1)} g<br/>
+        Salt: ${salt.toFixed(1)} g<br/>
+        Water: ${water.toFixed(1)} ml<br/>
+        Shortening: ${shortening.toFixed(1)} g<br/>
+        <strong>Estimated Yield:</strong> ~${estimatedPieces} pieces
+      `;
+      document.getElementById("recipeResult").innerHTML = result;
     }
-
-    document.getElementById("result").textContent = `Result: ${result}`;
-  }
-
-  function scrollToSection(id) {
-    document.getElementById(id).scrollIntoView({ behavior: "smooth" });
-  }
-</script>
+  </script>
 
 </body>
 </html>

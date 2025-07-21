@@ -1,90 +1,174 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bread Recipe Converter</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Recipe Converter</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: sans-serif;
       margin: 0;
-      padding: 1rem;
-      max-width: 500px;
-      margin: auto;
-      background-color: #f8f8f8;
+      padding: 0;
+      background: #f7f7f7;
+      color: #333;
     }
-    h1 {
+    header {
+      background: #ffcc99;
+      padding: 1em;
       text-align: center;
-      font-size: 1.5rem;
+      position: sticky;
+      top: 0;
+      z-index: 10;
     }
-    label {
-      display: block;
-      margin-top: 1rem;
+    nav {
+      margin-top: 0.5em;
+    }
+    nav a {
+      margin: 0 10px;
+      text-decoration: none;
+      color: #333;
       font-weight: bold;
+      cursor: pointer;
     }
-    input {
+    section {
+      padding: 2em;
+    }
+    h2 {
+      color: #d2691e;
+    }
+    input, select {
+      padding: 0.5em;
+      margin: 0.5em 0;
       width: 100%;
-      padding: 0.5rem;
-      margin-top: 0.5rem;
-      font-size: 1rem;
+      max-width: 300px;
     }
-    .results {
-      margin-top: 2rem;
-      padding: 1rem;
-      background: #fff;
-      border-radius: 5px;
-    }
-    .result-item {
-      margin-bottom: 0.75rem;
+    .result {
+      margin-top: 1em;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <h1>Bread Recipe Converter</h1>
-  <label for="flour">Flour (grams):</label>
-  <input type="number" id="flour" value="300" min="1" />
 
-  <div class="results" id="results"></div>
+<header>
+  <h1>Recipe Converter</h1>
+  <nav>
+    <a onclick="scrollToSection('converter')">Unit Converter</a>
+    <a onclick="scrollToSection('instructions')">Instructions</a>
+  </nav>
+</header>
 
-  <script>
-    const flourInput = document.getElementById('flour');
-    const resultsDiv = document.getElementById('results');
+<section id="converter">
+  <h2>Unit Converter</h2>
+  <label for="amount">Enter amount:</label><br>
+  <input type="number" id="amount" placeholder="e.g. 120"><br>
 
-    function updateResults() {
-      const flour = parseFloat(flourInput.value);
-      if (isNaN(flour) || flour <= 0) {
-        resultsDiv.innerHTML = '<p>Please enter a valid amount of flour.</p>';
-        return;
-      }
+  <label for="unitFrom">From:</label><br>
+  <select id="unitFrom">
+    <option value="ml">Milliliters (ml)</option>
+    <option value="cup">Cups</option>
+    <option value="tbsp">Tablespoons (tbsp)</option>
+    <option value="tsp">Teaspoons (tsp)</option>
+    <option value="g">Grams (g)</option>
+  </select><br>
 
-      const ratio = flour / 2000; // base recipe is for 2000g
+  <label for="unitTo">To:</label><br>
+  <select id="unitTo">
+    <option value="ml">Milliliters (ml)</option>
+    <option value="cup">Cups</option>
+    <option value="tbsp">Tablespoons (tbsp)</option>
+    <option value="tsp">Teaspoons (tsp)</option>
+    <option value="g">Grams (g)</option>
+  </select><br>
 
-      const ingredients = {
-        Yeast: 20 * ratio,
-        Sugar: 400 * ratio,
-        Salt: 24 * ratio,
-        Water: 1120 * ratio,
-        Shortening: 140 * ratio,
-      };
+  <label for="density">Custom Density (optional, g/ml):</label><br>
+  <input type="number" id="density" step="0.01" placeholder="Only for grams ⇄ ml"><br>
 
-      const conversions = {
-        WaterCups: ingredients.Water / 240,
-        ShorteningTbsp: ingredients.Shortening / 15,
-        BreadYield: 123 * ratio,
-      };
+  <button onclick="convertUnits()">Convert</button>
 
-      resultsDiv.innerHTML = `
-        <div class="result-item"><strong>Yeast:</strong> ${ingredients.Yeast.toFixed(1)} g</div>
-        <div class="result-item"><strong>Sugar:</strong> ${ingredients.Sugar.toFixed(1)} g</div>
-        <div class="result-item"><strong>Salt:</strong> ${ingredients.Salt.toFixed(1)} g</div>
-        <div class="result-item"><strong>Water:</strong> ${ingredients.Water.toFixed(1)} g (${conversions.WaterCups.toFixed(2)} cups)</div>
-        <div class="result-item"><strong>Shortening:</strong> ${ingredients.Shortening.toFixed(1)} g (${conversions.ShorteningTbsp.toFixed(2)} tbsp)</div>
-        <div class="result-item"><strong>Estimated Breads:</strong> ${conversions.BreadYield.toFixed(0)} pcs</div>
-      `;
+  <div class="result" id="result"></div>
+</section>
+
+<section id="instructions">
+  <h2>How to Use This Page</h2>
+  <p>This tool helps you convert between common baking and cooking units like cups, grams, tablespoons, and more.</p>
+  <ul>
+    <li>Enter the number and select the units to convert from and to.</li>
+    <li>If converting between grams and milliliters, enter the ingredient’s density (e.g., flour ≈ 0.53).</li>
+    <li>The result will show both decimal and easy-to-read fractions for cups.</li>
+    <li>Scroll up anytime to use the converter again.</li>
+  </ul>
+</section>
+
+<script>
+  const unitToML = {
+    cup: 240,
+    tbsp: 15,
+    tsp: 5,
+    ml: 1
+  };
+
+  const commonFractions = [
+    { dec: 0.125, frac: "1/8" },
+    { dec: 0.25, frac: "1/4" },
+    { dec: 0.33, frac: "1/3" },
+    { dec: 0.375, frac: "3/8" },
+    { dec: 0.5, frac: "1/2" },
+    { dec: 0.66, frac: "2/3" },
+    { dec: 0.67, frac: "2/3" },
+    { dec: 0.75, frac: "3/4" },
+    { dec: 1.0, frac: "1" }
+  ];
+
+  function toFraction(value) {
+    let closest = commonFractions.reduce((prev, curr) => {
+      return Math.abs(curr.dec - value) < Math.abs(prev.dec - value) ? curr : prev;
+    });
+    return `${value.toFixed(2)} (≈ ${closest.frac})`;
+  }
+
+  function convertUnits() {
+    const amount = parseFloat(document.getElementById("amount").value);
+    const from = document.getElementById("unitFrom").value;
+    const to = document.getElementById("unitTo").value;
+    const density = parseFloat(document.getElementById("density").value);
+
+    if (isNaN(amount)) {
+      document.getElementById("result").textContent = "Please enter a valid number.";
+      return;
     }
 
-    flourInput.addEventListener('input', updateResults);
-    window.addEventListener('DOMContentLoaded', updateResults);
-  </script>
+    let result;
+
+    // Volume to volume
+    if (unitToML[from] && unitToML[to]) {
+      const ml = amount * unitToML[from];
+      const converted = ml / unitToML[to];
+      result = (to === "cup") ? toFraction(converted) + " cups" : `${converted.toFixed(2)} ${to}`;
+    }
+
+    // Grams to ml or vice versa
+    else if ((from === "g" && to === "ml") || (from === "ml" && to === "g")) {
+      if (!density) {
+        document.getElementById("result").textContent = "Please enter the density to convert grams and ml.";
+        return;
+      }
+      const converted = (from === "g") ? amount / density : amount * density;
+      result = `${converted.toFixed(2)} ${to}`;
+    }
+
+    // Gram to gram or unsupported
+    else if (from === "g" && to === "g") {
+      result = `${amount.toFixed(2)} g`;
+    }
+
+    document.getElementById("result").textContent = `Result: ${result}`;
+  }
+
+  function scrollToSection(id) {
+    document.getElementById(id).scrollIntoView({ behavior: "smooth" });
+  }
+</script>
+
 </body>
 </html>

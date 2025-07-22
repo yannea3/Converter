@@ -98,6 +98,18 @@
 
     <button onclick="scaleRecipe()">Scale Recipe</button>
     <p class="result" id="scaledRecipe"></p>
+
+<div id="breadEstimatorSection" style="display: none;">
+  <h3>Estimate Bread Pieces</h3>
+  <label for="breadWeightInput">Average weight per bread (g):</label>
+  <input type="number" id="breadWeightInput" placeholder="e.g. 60" />
+
+  <label for="customDoughWeight">Optional: Custom total dough weight for scaled recipe (g):</label>
+  <input type="number" id="customDoughWeight" placeholder="Leave blank to auto-calculate" />
+
+  <button onclick="estimateBreadPieces()">Estimate</button>
+  <p class="result" id="breadPieceEstimate"></p>
+</div>
   </div>
 
 <script>
@@ -180,6 +192,63 @@
 
     document.getElementById("scaledRecipe").innerHTML = output;
   }
+  <script>
+  function estimateBreadPieces() {
+    const breadWeight = parseFloat(document.getElementById("breadWeightInput").value);
+    const customDoughWeight = parseFloat(document.getElementById("customDoughWeight").value);
+    const scaledOutput = document.getElementById("scaledRecipe").innerHTML;
+
+    if (!breadWeight || breadWeight <= 0) {
+      document.getElementById("breadPieceEstimate").innerText = "Please enter a valid bread weight.";
+      return;
+    }
+
+    function extractWeightFromHtml(html) {
+      let total = 0;
+      const matches = html.match(/: ([\d.]+)\s?(g|ml)/gi);
+      if (matches) {
+        matches.forEach(m => {
+          const num = parseFloat(m);
+          if (!isNaN(num)) total += num;
+        });
+      }
+      return total;
+    }
+
+    const estimatedScaledWeight = isNaN(customDoughWeight) || customDoughWeight <= 0
+      ? extractWeightFromHtml(scaledOutput)
+      : customDoughWeight;
+
+    const scaledPieces = Math.floor(estimatedScaledWeight / breadWeight);
+
+    // Also estimate for original recipe
+    const items = document.querySelectorAll(".ingredient-item");
+    let originalTotal = 0;
+    items.forEach(item => {
+      const name = item.querySelector("select").value;
+      const amount = parseFloat(item.querySelector("input").value);
+      if (!isNaN(amount)) {
+        originalTotal += amount;
+      }
+    });
+    const originalPieces = Math.floor(originalTotal / breadWeight);
+
+    document.getElementById("breadPieceEstimate").innerText =
+      `Original Recipe: ~${originalPieces} pcs\n` +
+      `Scaled Recipe: ~${scaledPieces} pcs (based on ${breadWeight}g each)`;
+  }
+
+  // Reveal estimator after scaling
+  function showBreadEstimator() {
+    document.getElementById("breadEstimatorSection").style.display = "block";
+  }
+
+  // Modify the end of your scaleRecipe() function like this:
+  // ...
+  document.getElementById("scaledRecipe").innerHTML = output;
+  showBreadEstimator(); // <-- Add this line
+}
+</script>
 
   function decimalToFraction(value) {
     const tolerance = 1e-2;

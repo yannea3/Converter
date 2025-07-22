@@ -81,7 +81,6 @@
 
     <div id="ingredientList">
       <p><strong>Step 1: Enter your original recipe</strong></p>
-      <!-- Ingredient rows will appear here -->
     </div>
     <button onclick="addIngredient()">+ Add Ingredient</button>
 
@@ -99,270 +98,212 @@
     <button onclick="scaleRecipe()">Scale Recipe</button>
     <p class="result" id="scaledRecipe"></p>
 
-<div id="breadEstimatorSection" style="display: none;">
-  <h3>Estimate Bread Pieces</h3>
-  <label for="breadWeightInput">Average weight per bread (g):</label>
-  <input type="number" id="breadWeightInput" placeholder="e.g. 60" />
+    <div id="breadEstimatorSection" style="display: none;">
+      <h3>Estimate Bread Pieces</h3>
+      <label for="breadWeightInput">Average weight per bread (g):</label>
+      <input type="number" id="breadWeightInput" placeholder="e.g. 60" />
 
-  <label for="customDoughWeight">Optional: Custom total dough weight for scaled recipe (g):</label>
-  <input type="number" id="customDoughWeight" placeholder="Leave blank to auto-calculate" />
+      <label for="customDoughWeight">Optional: Custom total dough weight for scaled recipe (g):</label>
+      <input type="number" id="customDoughWeight" placeholder="Leave blank to auto-calculate" />
 
-  <button onclick="estimateBreadPieces()">Estimate</button>
-  <p class="result" id="breadPieceEstimate"></p>
-</div>
+      <button onclick="estimateBreadPieces()">Estimate</button>
+      <p class="result" id="breadPieceEstimate"></p>
+    </div>
   </div>
 
-<script>
-  const ingredientNames = [
-    "Flour (g)", "Yeast (g)", "Sugar (g)", "Salt (g)",
-    "Water (ml)", "Shortening (g)", "Milk (ml)", "Oil (ml)", "Butter (g)"
-  ];
-
-  function addIngredient() {
-    const container = document.createElement("div");
-    container.classList.add("ingredient-item");
-
-    const select = document.createElement("select");
-    ingredientNames.forEach(name => {
-      const option = document.createElement("option");
-      option.value = name;
-      option.textContent = name;
-      select.appendChild(option);
-    });
-
-    const input = document.createElement("input");
-    input.type = "number";
-    input.placeholder = "Original amount";
-
-    container.appendChild(select);
-    container.appendChild(input);
-
-    document.getElementById("ingredientList").appendChild(container);
-
-    // Also add to the limiting ingredient dropdown
-    const limitSelect = document.getElementById("limitIngredient");
-    const newOption = document.createElement("option");
-    newOption.value = ingredientNames[0]; // default, overwritten on change
-    newOption.textContent = ingredientNames[0];
-    select.addEventListener("change", () => {
-      newOption.value = select.value;
-      newOption.textContent = select.value;
-    });
-    limitSelect.appendChild(newOption);
-  }
-
-  function scaleRecipe() {
-    const limitName = document.getElementById("limitIngredient").value;
-    const limitAmount = parseFloat(document.getElementById("limitAmount").value);
-    const items = document.querySelectorAll(".ingredient-item");
-
-    if (!limitName || isNaN(limitAmount) || limitAmount <= 0) {
-      document.getElementById("scaledRecipe").innerText = "Please select a valid ingredient and amount.";
-      return;
-    }
-
-    let originalAmount = null;
-    const ingredients = [];
-
-    items.forEach(item => {
-      const name = item.querySelector("select").value;
-      const amount = parseFloat(item.querySelector("input").value);
-
-      if (!isNaN(amount) && name) {
-        ingredients.push({ name, amount });
-
-        if (name === limitName) {
-          originalAmount = amount;
-        }
-      }
-    });
-
-    if (originalAmount === null) {
-      document.getElementById("scaledRecipe").innerText = "The limiting ingredient must be part of the original recipe.";
-      return;
-    }
-
-    const factor = limitAmount / originalAmount;
-    let output = `<strong>Adjusted Ingredients:</strong><br>`;
-
-    ingredients.forEach(ing => {
-      const scaled = (ing.amount * factor).toFixed(1);
-      output += `- ${ing.name}: ${scaled}<br>`;
-    });
-
-    document.getElementById("scaledRecipe").innerHTML = output;
-  }
   <script>
-  function estimateBreadPieces() {
-    const breadWeight = parseFloat(document.getElementById("breadWeightInput").value);
-    const customDoughWeight = parseFloat(document.getElementById("customDoughWeight").value);
-    const scaledOutput = document.getElementById("scaledRecipe").innerHTML;
+    const ingredientNames = [
+      "Flour (g)", "Yeast (g)", "Sugar (g)", "Salt (g)",
+      "Water (ml)", "Shortening (g)", "Milk (ml)", "Oil (ml)", "Butter (g)"
+    ];
 
-    if (!breadWeight || breadWeight <= 0) {
-      document.getElementById("breadPieceEstimate").innerText = "Please enter a valid bread weight.";
-      return;
+    function addIngredient() {
+      const container = document.createElement("div");
+      container.classList.add("ingredient-item");
+
+      const select = document.createElement("select");
+      ingredientNames.forEach(name => {
+        const option = document.createElement("option");
+        option.value = name;
+        option.textContent = name;
+        select.appendChild(option);
+      });
+
+      const input = document.createElement("input");
+      input.type = "number";
+      input.placeholder = "Original amount";
+
+      container.appendChild(select);
+      container.appendChild(input);
+      document.getElementById("ingredientList").appendChild(container);
+
+      const limitSelect = document.getElementById("limitIngredient");
+      const newOption = document.createElement("option");
+      newOption.value = ingredientNames[0];
+      newOption.textContent = ingredientNames[0];
+      select.addEventListener("change", () => {
+        newOption.value = select.value;
+        newOption.textContent = select.value;
+      });
+      limitSelect.appendChild(newOption);
     }
 
-    function extractWeightFromHtml(html) {
-      let total = 0;
-      const matches = html.match(/: ([\d.]+)\s?(g|ml)/gi);
-      if (matches) {
-        matches.forEach(m => {
-          const num = parseFloat(m);
-          if (!isNaN(num)) total += num;
-        });
+    function scaleRecipe() {
+      const limitName = document.getElementById("limitIngredient").value;
+      const limitAmount = parseFloat(document.getElementById("limitAmount").value);
+      const items = document.querySelectorAll(".ingredient-item");
+
+      if (!limitName || isNaN(limitAmount) || limitAmount <= 0) {
+        document.getElementById("scaledRecipe").innerText = "Please select a valid ingredient and amount.";
+        return;
       }
-      return total;
-    }
 
-    const estimatedScaledWeight = isNaN(customDoughWeight) || customDoughWeight <= 0
-      ? extractWeightFromHtml(scaledOutput)
-      : customDoughWeight;
+      let originalAmount = null;
+      const ingredients = [];
 
-    const scaledPieces = Math.floor(estimatedScaledWeight / breadWeight);
+      items.forEach(item => {
+        const name = item.querySelector("select").value;
+        const amount = parseFloat(item.querySelector("input").value);
 
-    // Also estimate for original recipe
-    const items = document.querySelectorAll(".ingredient-item");
-    let originalTotal = 0;
-    items.forEach(item => {
-      const name = item.querySelector("select").value;
-      const amount = parseFloat(item.querySelector("input").value);
-      if (!isNaN(amount)) {
-        originalTotal += amount;
-      }
-    });
-    const originalPieces = Math.floor(originalTotal / breadWeight);
-
-    document.getElementById("breadPieceEstimate").innerText =
-      `Original Recipe: ~${originalPieces} pcs\n` +
-      `Scaled Recipe: ~${scaledPieces} pcs (based on ${breadWeight}g each)`;
-  }
-
-  // Reveal estimator after scaling
-  function showBreadEstimator() {
-    document.getElementById("breadEstimatorSection").style.display = "block";
-  }
-
-  // Modify the end of your scaleRecipe() function like this:
-  // ...
-  document.getElementById("scaledRecipe").innerHTML = output;
-  showBreadEstimator(); // <-- Add this line
-}
-</script>
-
-  function decimalToFraction(value) {
-    const tolerance = 1e-2;
-    let h1 = 1, h2 = 0, k1 = 0, k2 = 1;
-    let b = value;
-    do {
-      let a = Math.floor(b);
-      let aux = h1; h1 = a * h1 + h2; h2 = aux;
-      aux = k1; k1 = a * k1 + k2; k2 = aux;
-      b = 1 / (b - a);
-    } while (Math.abs(value - h1 / k1) > value * tolerance);
-    if (k1 <= 9) return `${h1}/${k1}`;
-    return null;
-  }
-
-  function convert() {
-    const value = parseFloat(document.getElementById('unitValue').value);
-    const from = document.getElementById('unitFrom').value;
-    const to = document.getElementById('unitTo').value;
-    const ingredient = document.getElementById('ingredient').value;
-
-    if (isNaN(value) || value <= 0) {
-      document.getElementById("conversionResult").innerText = "Please enter a valid amount.";
-      return;
-    }
-
-    const densities = {
-      flour: 0.53,
-      sugar: 0.85,
-      butter: 0.96,
-      water: 1.00,
-      milk: 1.03
-    };
-
-    const volumeUnits = {
-      ml: 1,
-      cups: 240,
-      tbsp: 15,
-      tsp: 5
-    };
-
-    let result = 0;
-
-    if (from === to) {
-      result = value;
-    } else if (from === "grams" && to in volumeUnits) {
-      const mlValue = value / densities[ingredient];
-      result = mlValue / volumeUnits[to];
-    } else if (to === "grams" && from in volumeUnits) {
-      const mlValue = value * volumeUnits[from];
-      result = mlValue * densities[ingredient];
-    } else if (from in volumeUnits && to in volumeUnits) {
-      const mlValue = value * volumeUnits[from];
-      result = mlValue / volumeUnits[to];
-    } else {
-      document.getElementById("conversionResult").innerText = "Unsupported conversion.";
-      return;
-    }
-
-    const fraction = decimalToFraction(result);
-    const display = fraction && !display.includes("/")
-      ? `${result.toFixed(2)} or ${fraction} ${to}`
-      : `${result.toFixed(2)} ${to}`;
-
-    document.getElementById("conversionResult").innerText = `Result: ${display}`;
-  }
-</script>
-<div class="section">
-  <h3>Optional: Bread Yield Estimator</h3>
-  <label for="doughWeight">Estimated total dough weight (g):</label>
-  <input type="number" id="doughWeight" placeholder="e.g. 1000" />
-
-  <label for="breadWeight">Average weight per bread (g):</label>
-  <input type="number" id="breadWeight" placeholder="e.g. 60" />
-
-  <button onclick="estimateBread()">Estimate Bread Pieces</button>
-  <p class="result" id="breadEstimate"></p>
-</div>
-
-<script>
-  function estimateBread() {
-    const doughInput = parseFloat(document.getElementById("doughWeight").value);
-    const breadWeight = parseFloat(document.getElementById("breadWeight").value);
-    const scaledOutput = document.getElementById("scaledRecipe").innerHTML;
-
-    if (!breadWeight || breadWeight <= 0) {
-      document.getElementById("breadEstimate").innerText = "Please enter a valid bread weight.";
-      return;
-    }
-
-    let totalDoughWeight = 0;
-
-    if (!isNaN(doughInput) && doughInput > 0) {
-      totalDoughWeight = doughInput;
-    } else {
-      // Estimate from the displayed scaled ingredients
-      const lines = scaledOutput.split("<br>");
-      lines.forEach(line => {
-        const match = line.match(/: ([\d.]+)(\s?)(g|ml)/i);
-        if (match) {
-          totalDoughWeight += parseFloat(match[1]);
+        if (!isNaN(amount) && name) {
+          ingredients.push({ name, amount });
+          if (name === limitName) {
+            originalAmount = amount;
+          }
         }
       });
+
+      if (originalAmount === null) {
+        document.getElementById("scaledRecipe").innerText = "The limiting ingredient must be part of the original recipe.";
+        return;
+      }
+
+      const factor = limitAmount / originalAmount;
+      let output = `<strong>Adjusted Ingredients:</strong><br>`;
+
+      ingredients.forEach(ing => {
+        const scaled = (ing.amount * factor).toFixed(1);
+        output += `- ${ing.name}: ${scaled}<br>`;
+      });
+
+      document.getElementById("scaledRecipe").innerHTML = output;
+      showBreadEstimator();
     }
 
-    if (!totalDoughWeight || totalDoughWeight <= 0) {
-      document.getElementById("breadEstimate").innerText = "Could not calculate total dough weight.";
-      return;
+    function estimateBreadPieces() {
+      const breadWeight = parseFloat(document.getElementById("breadWeightInput").value);
+      const customDoughWeight = parseFloat(document.getElementById("customDoughWeight").value);
+      const scaledOutput = document.getElementById("scaledRecipe").innerHTML;
+
+      if (!breadWeight || breadWeight <= 0) {
+        document.getElementById("breadPieceEstimate").innerText = "Please enter a valid bread weight.";
+        return;
+      }
+
+      function extractWeightFromHtml(html) {
+        let total = 0;
+        const matches = html.match(/: ([\d.]+)\s?(g|ml)/gi);
+        if (matches) {
+          matches.forEach(m => {
+            const num = parseFloat(m);
+            if (!isNaN(num)) total += num;
+          });
+        }
+        return total;
+      }
+
+      const estimatedScaledWeight = isNaN(customDoughWeight) || customDoughWeight <= 0
+        ? extractWeightFromHtml(scaledOutput)
+        : customDoughWeight;
+
+      const scaledPieces = Math.floor(estimatedScaledWeight / breadWeight);
+
+      const items = document.querySelectorAll(".ingredient-item");
+      let originalTotal = 0;
+      items.forEach(item => {
+        const amount = parseFloat(item.querySelector("input").value);
+        if (!isNaN(amount)) {
+          originalTotal += amount;
+        }
+      });
+
+      const originalPieces = Math.floor(originalTotal / breadWeight);
+
+      document.getElementById("breadPieceEstimate").innerText =
+        `Original Recipe: ~${originalPieces} pcs\nScaled Recipe: ~${scaledPieces} pcs (based on ${breadWeight}g each)`;
     }
 
-    const estimatedPieces = Math.floor(totalDoughWeight / breadWeight);
-    document.getElementById("breadEstimate").innerText =
-      `Estimated pieces of bread: ~${estimatedPieces} (based on ${breadWeight}g each)`;
-  }
-</script>
+    function showBreadEstimator() {
+      document.getElementById("breadEstimatorSection").style.display = "block";
+    }
+
+    function decimalToFraction(value) {
+      const tolerance = 1e-2;
+      let h1 = 1, h2 = 0, k1 = 0, k2 = 1;
+      let b = value;
+      do {
+        let a = Math.floor(b);
+        let aux = h1; h1 = a * h1 + h2; h2 = aux;
+        aux = k1; k1 = a * k1 + k2; k2 = aux;
+        b = 1 / (b - a);
+      } while (Math.abs(value - h1 / k1) > value * tolerance);
+      if (k1 <= 9) return `${h1}/${k1}`;
+      return null;
+    }
+
+    function convert() {
+      const value = parseFloat(document.getElementById('unitValue').value);
+      const from = document.getElementById('unitFrom').value;
+      const to = document.getElementById('unitTo').value;
+      const ingredient = document.getElementById('ingredient').value;
+
+      if (isNaN(value) || value <= 0) {
+        document.getElementById("conversionResult").innerText = "Please enter a valid amount.";
+        return;
+      }
+
+      const densities = {
+        flour: 0.53,
+        sugar: 0.85,
+        butter: 0.96,
+        water: 1.00,
+        milk: 1.03
+      };
+
+      const volumeUnits = {
+        ml: 1,
+        cups: 240,
+        tbsp: 15,
+        tsp: 5
+      };
+
+      let result = 0;
+
+      if (from === to) {
+        result = value;
+      } else if (from === "grams" && to in volumeUnits) {
+        const mlValue = value / densities[ingredient];
+        result = mlValue / volumeUnits[to];
+      } else if (to === "grams" && from in volumeUnits) {
+        const mlValue = value * volumeUnits[from];
+        result = mlValue * densities[ingredient];
+      } else if (from in volumeUnits && to in volumeUnits) {
+        const mlValue = value * volumeUnits[from];
+        result = mlValue / volumeUnits[to];
+      } else {
+        document.getElementById("conversionResult").innerText = "Unsupported conversion.";
+        return;
+      }
+
+      const fraction = decimalToFraction(result);
+      const useFraction = fraction && fraction.indexOf("/") === 1;
+      const display = useFraction
+        ? `${result.toFixed(2)} or ${fraction} ${to}`
+        : `${result.toFixed(2)} ${to}`;
+
+      document.getElementById("conversionResult").innerText = `Result: ${display}`;
+    }
+  </script>
+
 </body>
 </html>

@@ -190,15 +190,49 @@
       showBreadEstimator();
     }
 
-    function estimateBreadPieces() {
-      const breadWeight = parseFloat(document.getElementById("breadWeightInput").value);
-      const customDoughWeight = parseFloat(document.getElementById("customDoughWeight").value);
-      const scaledOutput = document.getElementById("scaledRecipe").innerHTML;
+  function estimateBreadPieces() {
+  const breadWeight = parseFloat(document.getElementById("breadWeightInput").value);
+  const customDoughWeight = parseFloat(document.getElementById("customDoughWeight").value);
 
-      if (!breadWeight || breadWeight <= 0) {
-        document.getElementById("breadPieceEstimate").innerText = "Please enter a valid bread weight.";
-        return;
-      }
+  if (!breadWeight || breadWeight <= 0) {
+    document.getElementById("breadPieceEstimate").innerText = "Please enter a valid bread weight.";
+    return;
+  }
+
+  const scaledOutput = document.getElementById("scaledRecipe").innerHTML;
+
+  // Extract adjusted ingredient weights from the scaled output
+  let totalScaledWeight = 0;
+  const lines = scaledOutput.split("<br>");
+  lines.forEach(line => {
+    const match = line.match(/- .+?: ([\d.]+)\s?(g|ml)/i);
+    if (match) {
+      const value = parseFloat(match[1]);
+      if (!isNaN(value)) totalScaledWeight += value;
+    }
+  });
+
+  const estimatedScaledWeight = isNaN(customDoughWeight) || customDoughWeight <= 0
+    ? totalScaledWeight
+    : customDoughWeight;
+
+  const scaledPieces = Math.floor(estimatedScaledWeight / breadWeight);
+
+  // Estimate original dough weight
+  const items = document.querySelectorAll(".ingredient-item");
+  let originalTotal = 0;
+  items.forEach(item => {
+    const amount = parseFloat(item.querySelector("input").value);
+    if (!isNaN(amount)) {
+      originalTotal += amount;
+    }
+  });
+
+  const originalPieces = Math.floor(originalTotal / breadWeight);
+
+  document.getElementById("breadPieceEstimate").innerText =
+    `Original Recipe: ~${originalPieces} pcs\nScaled Recipe: ~${scaledPieces} pcs (based on ${breadWeight}g each)`;
+}
 
       function extractWeightFromHtml(html) {
         let total = 0;

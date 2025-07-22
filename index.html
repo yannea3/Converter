@@ -247,5 +247,53 @@
     document.getElementById("conversionResult").innerText = `Result: ${display}`;
   }
 </script>
+<div class="section">
+  <h3>Optional: Bread Yield Estimator</h3>
+  <label for="doughWeight">Estimated total dough weight (g):</label>
+  <input type="number" id="doughWeight" placeholder="e.g. 1000" />
+
+  <label for="breadWeight">Average weight per bread (g):</label>
+  <input type="number" id="breadWeight" placeholder="e.g. 60" />
+
+  <button onclick="estimateBread()">Estimate Bread Pieces</button>
+  <p class="result" id="breadEstimate"></p>
+</div>
+
+<script>
+  function estimateBread() {
+    const doughInput = parseFloat(document.getElementById("doughWeight").value);
+    const breadWeight = parseFloat(document.getElementById("breadWeight").value);
+    const scaledOutput = document.getElementById("scaledRecipe").innerHTML;
+
+    if (!breadWeight || breadWeight <= 0) {
+      document.getElementById("breadEstimate").innerText = "Please enter a valid bread weight.";
+      return;
+    }
+
+    let totalDoughWeight = 0;
+
+    if (!isNaN(doughInput) && doughInput > 0) {
+      totalDoughWeight = doughInput;
+    } else {
+      // Estimate from the displayed scaled ingredients
+      const lines = scaledOutput.split("<br>");
+      lines.forEach(line => {
+        const match = line.match(/: ([\d.]+)(\s?)(g|ml)/i);
+        if (match) {
+          totalDoughWeight += parseFloat(match[1]);
+        }
+      });
+    }
+
+    if (!totalDoughWeight || totalDoughWeight <= 0) {
+      document.getElementById("breadEstimate").innerText = "Could not calculate total dough weight.";
+      return;
+    }
+
+    const estimatedPieces = Math.floor(totalDoughWeight / breadWeight);
+    document.getElementById("breadEstimate").innerText =
+      `Estimated pieces of bread: ~${estimatedPieces} (based on ${breadWeight}g each)`;
+  }
+</script>
 </body>
 </html>

@@ -79,9 +79,10 @@
     <h2>Recipe Scaler</h2>
     <p>This tool scales your full recipe based on the ingredient you have limited quantity of.</p>
 
-    <div id="ingredientList">
-      <p><strong>Step 1: Enter your original recipe</strong></p>
-    </div>
+    <div id="ingredientContainer">
+  <p><strong>Step 1: Enter your original recipe</strong></p>
+</div>
+    
     <button onclick="addIngredient()">+ Add Ingredient</button>
 
     <div style="margin-top: 20px;">
@@ -227,7 +228,5 @@
       `Original Recipe: ~${originalPieces} pcs\nScaled Recipe: ~${scaledPieces} pcs (based on ${breadWeight}g each)`;
   }
 </script>
-
-
 </body>
 </html>
